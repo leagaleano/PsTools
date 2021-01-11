@@ -1,2 +1,2 @@
 # PsTools
-PowerShell Tools for Misc stuff
+PowerShell Tools created for making some tasks easier. :D
