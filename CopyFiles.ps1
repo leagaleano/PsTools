@@ -16,26 +16,34 @@
      }
 
 
-Get-Content "ServerList.txt" | %{
-
-  # Define what each job does
-  $ScriptBlock = {
-    param($pipelinePassIn) 
-    Test-Path "\\$pipelinePassIn\c`$\Something"
-    Start-Sleep 60
-  }
-
-  # Execute the jobs in parallel
-  Start-Job $ScriptBlock -ArgumentList $_
+$ScriptBlock = {
+   Param ($ComputerName)
+   Write-Output $ComputerName
+   #your processing here...
 }
 
-Get-Job
+$runspacePool = [RunspaceFactory]::CreateRunspacePool(1, $MaxThreads)
+$runspacePool.Open()
+$jobs = @()
 
-# Wait for it all to complete
-While (Get-Job -State "Running")
-{
-  Start-Sleep 10
+#queue up jobs:
+$computers = (Get-ADDomainController -Filter *).Name
+$computers | % {
+    $job = [Powershell]::Create().AddScript($ScriptBlock).AddParameter("ComputerName",$_)
+    $job.RunspacePool = $runspacePool
+    $jobs += New-Object PSObject -Property @{
+        Computer = $_
+        Pipe = $job
+        Result = $job.BeginInvoke()
+    }
 }
 
-# Getting the information back from the jobs
-Get-Job | Receive-Job
+# wait for jobs to finish:
+While ((Get-Job -State Running).Count -gt 0) {
+    Get-Job | Wait-Job -Any | Out-Null
+}
+
+# get output of jobs
+$jobs | % {
+    $_.Pipe.EndInvoke($_.Result)
+}
