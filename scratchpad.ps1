@@ -1,10 +1,3 @@
-$file1 = Get-Content "C:\path\to\file1.txt"
-$file2 = Get-Content "C:\path\to\file2.txt"
-
-# Create a two-row table to display the differences
-$table = @()
-$table += New-Object psobject -Property @{ File1 = $file1 }
-$table += New-Object psobject -Property @{ File2 = $file2 }
-
-# Display the table
-$table | Format-Table
+$diff = Compare-Object (Get-Content "C:\file1.txt") (Get-Content "C:\file2.txt")
+$diff | Where-Object {$_.SideIndicator -eq "<="}
+$diff | Where-Object {$_.SideIndicator -eq "<="} | Format-List
