@@ -11,12 +11,18 @@ $diff = Compare-Object $contents1 $contents2
 
 # Output the differences between the two files
 $diff | ForEach-Object {
+    # Determine the line number for the difference
     if ($_.SideIndicator -eq '=>') {
-        Write-Host "$($_.InputObject) was added to $file2"
+        $lineNumber = $contents2.IndexOf($_.InputObject) + 1
+        Write-Host "Line $lineNumber: [extra line in file2] $($_.InputObject)"
     } elseif ($_.SideIndicator -eq '<=') {
-        Write-Host "$($_.InputObject) was removed from $file2"
+        $lineNumber = $contents1.IndexOf($_.InputObject) + 1
+        Write-Host "Line $lineNumber: [missing line in file2] $($_.InputObject)"
     } else {
-        Write-Host "$($_.InputObject) was changed in $file2"
+        $lineNumber1 = $contents1.IndexOf($_.InputObject) + 1
+        $lineNumber2 = $contents2.IndexOf($_.InputObject) + 1
+        Write-Host "Line $lineNumber1: [missing line in file2] $($_.InputObject)"
+        Write-Host "Line $lineNumber2: [extra line in file2] $($_.InputObject)"
     }
 }
 
