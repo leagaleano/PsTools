@@ -56,3 +56,8 @@ Write-Output "Previous builds:"
 $previousBuilds | Select-Object -Property id,finishTime | Format-Table
 Write-Output "Following builds:"
 $followingBuilds | Select-Object -Property id,finishTime | Format-Table
+
+
+
+$url = "$($organizationUrl)/$($project)/_apis/build/builds?api-version=5.1&agentName=$($agentName)&$($pipelineCount)&resultFilter=succeeded,partiallySucceeded"
+$pipelines = Invoke-RestMethod -Uri $url -Method Get -Headers $headers
